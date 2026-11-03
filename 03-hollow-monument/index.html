@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Hollow Monument</title>
+    <meta name="description" content="Experiment 03 — a LiDAR survey of a monument that was never built. Rust → WebAssembly point clouds sampled from signed distance fields, WGSL compute morphs, scroll-driven flythrough." />
+    <meta name="theme-color" content="#0b0c0e" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0c0e'/%3E%3Crect x='8' y='9' width='16' height='4' fill='%23e7eaee'/%3E%3Crect x='11' y='15' width='10' height='9' fill='none' stroke='%23e7eaee' stroke-width='1.5'/%3E%3Crect x='15' y='15' width='2' height='9' fill='%23ff5a1f'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@200;300;400;500;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <canvas id="view" aria-hidden="true"></canvas>
+    <div class="frame" aria-hidden="true"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+    <div class="ripples" id="ripples" aria-hidden="true"></div>
+
+    <!-- ── boot ─────────────────────────────────────────────────────────── -->
+    <div id="boot" role="status" aria-live="polite">
+      <div class="boot-half boot-top"></div>
+      <div class="boot-half boot-bottom"></div>
+      <div class="boot-content">
+        <div class="boot-head mono">
+          <span>Hollow Monument</span>
+          <span>Survey boot · Site 03</span>
+          <span id="boot-clock">T+0000 MS</span>
+        </div>
+        <div class="boot-count">
+          <span class="boot-num" id="boot-n">0</span>
+          <span class="boot-unit mono">points resolved<br /><span id="boot-of">of —</span></span>
+        </div>
+        <div class="boot-line" aria-hidden="true"><i id="boot-bar"></i></div>
+        <table class="boot-table mono" id="boot-table">
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="cursor" aria-hidden="true"><i class="ring"></i><i class="dot"></i></div>
+    <div id="tag" class="mono" aria-hidden="true">
+      <b id="tag-id">PT #—</b>
+      <span id="tag-a"></span>
+      <span id="tag-b"></span>
+    </div>
+
+    <!-- ── chrome ───────────────────────────────────────────────────────── -->
+    <header class="nav mono">
+      <div class="nav-l">
+        <a class="back" href="../" aria-label="Back to Experiments"><span aria-hidden="true">←</span> Experiments</a>
+        <span class="mark">Hollow Monument</span>
+      </div>
+      <div class="nav-c"><span>LiDAR survey</span><i></i><span id="nav-ch">00 Arrival</span></div>
+      <div class="nav-r">
+        <span id="fps" class="fps">— FPS</span>
+        <button type="button" id="sound" class="sound" aria-pressed="false">
+          <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="sound-label">Sound off</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="degraded mono" id="degraded" hidden>
+      <b>WebGPU unavailable</b> — drawing a <span id="degraded-n">20,000</span>-point subsample with Canvas2D. The Rust core is unchanged.
+    </div>
+
+    <nav class="rail mono" aria-label="Chapters">
+      <div class="rail-track" aria-hidden="true"><i id="rail-fill"></i></div>
+      <ol id="rail">
+        <li><a href="#ch-0" data-ch="0"><b>00</b><span>Arrival</span></a></li>
+        <li><a href="#ch-1" data-ch="1"><b>01</b><span>The Slab</span></a></li>
+        <li><a href="#ch-2" data-ch="2"><b>02</b><span>The Void</span></a></li>
+        <li><a href="#ch-3" data-ch="3"><b>03</b><span>Collapse</span></a></li>
+        <li><a href="#ch-4" data-ch="4"><b>04</b><span>Hollow</span></a></li>
+        <li><a href="#ch-5" data-ch="5"><b>05</b><span>Credits</span></a></li>
+      </ol>
+    </nav>
+
+    <dl class="telemetry mono" aria-hidden="true">
+      <div><dt>Cam</dt><dd id="t-cam">—</dd></div>
+      <div><dt>Hdg</dt><dd id="t-hdg">—</dd></div>
+      <div><dt>Cloud</dt><dd id="t-cloud">—</dd></div>
+      <div><dt>Pts</dt><dd id="t-pts">—</dd></div>
+    </dl>
+
+    <ul class="hints mono" aria-label="Controls">
+      <li><b>Scroll</b> travel</li>
+      <li><b>Move</b> scan</li>
+      <li><b>Click</b> pulse</li>
+      <li><b>Drag</b> orbit</li>
+    </ul>
+
+    <!-- ── story ────────────────────────────────────────────────────────── -->
+    <main id="story">
+      <section class="ch ch-0" id="ch-0" data-ch="0">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>00</b><span>Arrival</span></p>
+          <h1 class="ch-title">
+            <span class="ln"><span>Hollow</span></span>
+            <span class="ln ln-in"><span>Monument</span></span>
+          </h1>
+          <div class="ch-body">
+            <p class="lede">A LiDAR survey of a building that was never built.</p>
+            <ul class="facts mono">
+              <li>Site 03 — Plateau Norte</li>
+              <li><span data-bind="n-total">—</span> returns · 4 clouds</li>
+              <li><span data-bind="n-prims">—</span> SDF primitives</li>
+            </ul>
+          </div>
+          <p class="cue mono" aria-hidden="true"><i></i>Scroll to survey</p>
+        </div>
+      </section>
+
+      <section class="ch ch-1 right" id="ch-1" data-ch="1">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>01</b><span>The Slab</span></p>
+          <h2 class="ch-title"><span class="ln"><span>The Slab</span></span></h2>
+          <div class="ch-body">
+            <p class="lede">Sixty-six metres of board-marked concrete. Twenty-two of them hang over nothing. The drawings call it a roof; the scanner calls it a ceiling over air.</p>
+            <ul class="facts mono">
+              <li>Cantilever · 22.0 m unsupported</li>
+              <li>Slab depth · 6.0 m</li>
+              <li>Coffers · 20 × 3.1 m</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="ch ch-2" id="ch-2" data-ch="2">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>02</b><span>The Void</span></p>
+          <h2 class="ch-title"><span class="ln"><span>The Void</span></span></h2>
+          <div class="ch-body">
+            <p class="lede">An arch cut clean through four storeys. A laser only records what it touches, so the void is the one place in the survey with no points at all.</p>
+            <ul class="facts mono">
+              <li>Span · 11.0 m</li>
+              <li>Rise · 23.5 m</li>
+              <li>Returns inside · 0</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="ch ch-3 right" id="ch-3" data-ch="3">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>03</b><span>Collapse</span></p>
+          <h2 class="ch-title"><span class="ln"><span>Collapse</span></span></h2>
+          <div class="ch-body">
+            <p class="lede">Take away the intention and a building is only terrain, waiting. Same points, same order — re-sampled as a ruin field.</p>
+            <ul class="facts mono">
+              <li><span data-bind="n-points">—</span> points in transit</li>
+              <li>2 piers · 1 lintel · 9 slabs</li>
+              <li>Field · 192 m across</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="ch ch-4" id="ch-4" data-ch="4">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>04</b><span>Hollow</span></p>
+          <h2 class="ch-title ch-title-sm"><span class="ln"><span>The shape of</span></span><span class="ln"><span>what is missing.</span></span></h2>
+          <div class="ch-body">
+            <p class="lede">Six letters set in Canvas2D, read back as a bitmap, extruded seven metres deep in Rust and scanned like everything else.</p>
+            <ul class="facts mono">
+              <li>Glyph mask · <span data-bind="mask">—</span> px</li>
+              <li>Extrusion · 7.0 m</li>
+              <li>Width · 92.0 m</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="ch ch-5" id="ch-5" data-ch="5">
+        <div class="ch-inner">
+          <p class="ch-num mono"><b>05</b><span>Credits</span></p>
+          <h2 class="ch-title"><span class="ln"><span>Credits</span></span></h2>
+          <div class="colophon mono">
+            <div>
+              <h3>Survey core</h3>
+              <p>Rust → WebAssembly<br /><span data-bind="wasm">monument_bg.wasm</span><br />SDF CSG · surface sampling<br />uniform-grid ray pick</p>
+            </div>
+            <div>
+              <h3>Time in Rust</h3>
+              <p id="credits-times">—</p>
+            </div>
+            <div>
+              <h3>Rendering</h3>
+              <p><span data-bind="renderer">WebGPU</span><br />cloud.wgsl · post.wgsl<br />compute springs + ballistics<br /><span data-bind="adapter">—</span></p>
+            </div>
+            <div>
+              <h3>Colophon</h3>
+              <p>Geist · Geist Mono<br />Experiment 03 · 2026<br /><a href="https://github.com/timetodoit/Experiments" target="_blank" rel="noopener">Source ↗</a><br /><a href="../">← All experiments</a></p>
+            </div>
+          </div>
+          <button type="button" class="replay mono" id="replay">Replay the survey ↑</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

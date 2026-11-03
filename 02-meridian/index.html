@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Meridian — a day in ink</title>
+    <meta name="description" content="Experiment 02 — one day told in fluid ink. A WebGPU stable-fluids simulation in WGSL compute, coloured by your local clock, seen through liquid glass." />
+    <meta name="theme-color" content="#f5f2ea" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f5f2ea'/%3E%3Cpath d='M16 6c4 6 7 9.5 7 13a7 7 0 0 1-14 0c0-3.5 3-7 7-13z' fill='%231d47ff'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Geist+Mono:wght@400;500&family=Geist:wght@300..600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="ink" aria-hidden="true"></canvas>
+
+    <!-- ── boot: one drop of ink ──────────────────────────────────────────── -->
+    <div id="boot" aria-hidden="true">
+      <div class="boot-core">
+        <div class="boot-drop" id="boot-drop"></div>
+        <p class="boot-title">Meridian</p>
+        <ol class="boot-stats mono" id="boot-stats"></ol>
+      </div>
+    </div>
+
+    <div id="cursor" aria-hidden="true">
+      <i class="c-ring"></i><i class="c-dot"></i><span class="c-label mono"></span>
+    </div>
+
+    <!-- ── nav ────────────────────────────────────────────────────────────── -->
+    <header class="nav mono">
+      <a class="nav-back" href="../">← Experiments</a>
+      <span class="nav-mark">Meridian</span>
+      <div class="nav-right">
+        <span id="nav-time" aria-live="off">00:00 — Night</span>
+        <button type="button" class="now-btn" id="now-btn" aria-pressed="true">Now</button>
+      </div>
+    </header>
+
+    <div class="notice mono" id="notice" hidden role="status">
+      <b>WebGPU isn't available here.</b> You're seeing the watercolour sketch — the meridian and the palettes still work.
+    </div>
+
+    <!-- ── meridian dial (fixed) ──────────────────────────────────────────── -->
+    <div
+      class="dial"
+      id="dial"
+      role="slider"
+      tabindex="0"
+      aria-label="Time of day"
+      aria-valuemin="0"
+      aria-valuemax="24"
+      aria-valuenow="0"
+    >
+      <div class="dial-read"><b data-dial-time>00:00</b><span class="mono" data-dial-phase>Night</span></div>
+      <span class="dial-cap mono">Drag the meridian</span>
+    </div>
+
+    <main id="stage">
+      <!-- ── hero ───────────────────────────────────────────────────────── -->
+      <section class="hero" id="hero" data-hour="now">
+        <div class="hero-kicker mono">
+          <span>Experiment 02</span>
+          <span>A day, told in ink</span>
+          <span id="hero-local">Local —</span>
+        </div>
+
+        <h1 class="hero-title" id="hero-title">
+          <span class="ln">Hours,</span>
+          <span class="ln it">dissolving.</span>
+        </h1>
+
+        <article class="glass card hero-card" data-glass>
+          <span class="grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <p class="card-kicker mono">Now playing — your local clock</p>
+          <p class="card-copy">
+            The paper, the ink and the light on this glass follow the hour where you are. Drag the meridian to borrow
+            another one.
+          </p>
+          <ul class="chips mono">
+            <li><b>Click</b> drop</li>
+            <li><b>Hold</b> pour</li>
+            <li><b>Drag</b> glass</li>
+            <li><b>Space</b> burst</li>
+          </ul>
+          <dl class="card-data mono">
+            <div><dt>Field</dt><dd id="d-field">—</dd></div>
+            <div><dt>Sun</dt><dd id="d-sun">—</dd></div>
+            <div><dt>Light from</dt><dd id="d-light">—</dd></div>
+          </dl>
+        </article>
+
+        <div class="scroll-cue mono"><i></i><span>Scroll — the day moves on</span></div>
+      </section>
+
+      <!-- ── I · dawn ───────────────────────────────────────────────────── -->
+      <section class="chapter right" id="dawn" data-hour="6.4">
+        <header class="chap-head mono"><span>I.</span><span>06:24 — Dawn</span><span>Sun rising in the east</span></header>
+        <h2 class="chap-title kinetic">First <em>light</em></h2>
+        <article class="glass card" data-glass>
+          <span class="grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <p class="card-kicker mono">Peach · rose · lilac</p>
+          <p class="card-copy">
+            Before the city wakes, colour arrives as a rumour. Warm ink pools in the low places, and the glass catches its
+            first highlight from the left — where the sun comes up.
+          </p>
+          <dl class="card-data mono">
+            <div><dt>Keyframe</dt><dd>06:00</dd></div>
+            <div><dt>Mix</dt><dd>OKLab</dd></div>
+            <div><dt>Light</dt><dd>090° · low</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <!-- ── II · noon ──────────────────────────────────────────────────── -->
+      <section class="chapter left" id="noon" data-hour="12.5">
+        <header class="chap-head mono"><span>II.</span><span>12:30 — Noon</span><span>Sun on the meridian</span></header>
+        <h2 class="chap-title kinetic">High <em>noon</em></h2>
+        <article class="glass card" data-glass>
+          <span class="grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <p class="card-kicker mono">Cobalt · paper white</p>
+          <p class="card-copy">
+            The sun stands on the meridian and every shadow shrinks to a full stop. Cobalt on paper — the most legible
+            hour. Pour slowly; at noon nothing hides.
+          </p>
+          <dl class="card-data mono">
+            <div><dt>Keyframe</dt><dd>12:00</dd></div>
+            <div><dt>Type</dt><dd>wght ↑ at noon</dd></div>
+            <div><dt>Light</dt><dd>180° · overhead</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <!-- ── III · dusk ─────────────────────────────────────────────────── -->
+      <section class="chapter right" id="dusk" data-hour="19.2">
+        <header class="chap-head mono"><span>III.</span><span>19:12 — Dusk</span><span>Sun just under the horizon</span></header>
+        <h2 class="chap-title kinetic">Going <em>violet</em></h2>
+        <article class="glass card" data-glass>
+          <span class="grip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <p class="card-kicker mono">Tangerine · violet</p>
+          <p class="card-copy">
+            Light turns horizontal and every edge goes soft. Tangerine runs into violet, the ink starts to glow instead
+            of stain, and the glass is lit from the right.
+          </p>
+          <dl class="card-data mono">
+            <div><dt>Keyframes</dt><dd>17:00 → 19:12</dd></div>
+            <div><dt>Ink</dt><dd>edge glow on</dd></div>
+            <div><dt>Light</dt><dd>270° · grazing</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <!-- ── colophon · night ───────────────────────────────────────────── -->
+      <section class="colophon" id="colophon" data-hour="23.2">
+        <header class="chap-head mono"><span>IV.</span><span>23:12 — Night</span><span>Colophon</span></header>
+        <h2 class="colo-title kinetic">And then the ink <em>dries.</em></h2>
+        <div class="colo-grid mono">
+          <div>
+            <h3>Simulation</h3>
+            <p>Stable fluids — Stam, 1999<br />GPU Gems, ch. 38<br /><span id="c-kernels">11</span> WGSL compute kernels<br /><span id="c-jacobi">32</span> Jacobi iterations / frame</p>
+          </div>
+          <div>
+            <h3>Fields</h3>
+            <p>WebGPU storage buffers<br />velocity <span id="c-vel">—</span><br />dye <span id="c-dye">—</span><br />manual bilinear sampling</p>
+          </div>
+          <div>
+            <h3>Glass</h3>
+            <p>Liquid-glass refraction shader<br />rounded-rect SDF · bevel normals<br />chromatic rim · frost<br />specular follows the sun</p>
+          </div>
+          <div>
+            <h3>Colour &amp; type</h3>
+            <p>Six keyframes in OKLab<br />driven by your local clock<br />Fraunces · Geist · Geist Mono</p>
+          </div>
+        </div>
+        <footer class="colo-foot mono">
+          <a href="../" class="back-link">← Back to Experiments</a>
+          <span>Experiment 02 · Meridian · 2026</span>
+          <a href="https://github.com/timetodoit/Experiments" target="_blank" rel="noopener">Source ↗</a>
+        </footer>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "02-meridian/src/style.css"
+        ],
+        "createdAt": "2026-11-03T23:41:42.400Z",
+        "reason": "Claude triage: only the 34px fixed-position cursor ring animates width/height; it is outside document flow, so no page reflow"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "02-meridian/index.html"
+        ],
+        "createdAt": "2026-11-03T23:41:42.428Z",
+        "reason": "Claude triage: verified in browser, hero headline is clamp(…) display size roughly 6x body; static analysis misses the CSS clamp"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.8, 0.5, 1)",
+        "createdAt": "2026-11-03T23:50:33.251Z",
+        "reason": "Claude triage: SOFT is a squishy-jelly festival concept; overshoot is the literal, domain-appropriate motion"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "wobble",
+        "createdAt": "2026-11-03T23:50:33.280Z",
+        "reason": "Claude triage: SOFT dock wobbles when inflate hits max pressure; literal jelly motion"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "05-soft/index.html"
+        ],
+        "createdAt": "2026-11-03T23:50:33.309Z",
+        "reason": "Claude triage: hero type is the WebGPU soft-body letters on canvas (viewport-sized); DOM text is intentionally small poster info"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "05-soft/src/style.css"
+        ],
+        "createdAt": "2026-11-03T23:50:41.846Z",
+        "reason": "Claude triage: only the custom cursor blob inside a position:fixed container morphs size; no document reflow"
+      }
+    ]
+  }
+}

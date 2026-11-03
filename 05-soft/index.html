@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>SOFT — a festival of squishy things</title>
+    <meta name="description" content="Experiment 05 — a poster whose letters are real soft bodies. Marching squares, shape matching and gas pressure in Rust → WebAssembly, rendered with WebGPU." />
+    <meta name="theme-color" content="#f4efe6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ff4a2e'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23ffe14d' stroke='%23141110' stroke-width='2.5'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- ── boot: a letter inflating ─────────────────────────────────────── -->
+    <div id="boot" aria-hidden="true">
+      <div class="boot-head mono"><span>SOFT ’27</span><span>Inflating the poster</span></div>
+      <div class="boot-stage">
+        <div class="boot-letter" id="boot-letter"><span>S</span></div>
+        <div class="boot-gauge"><b id="boot-kpa">0.0</b><small class="mono">kPa</small></div>
+      </div>
+      <pre class="boot-log mono" id="boot-log"></pre>
+    </div>
+
+    <div id="cursor" aria-hidden="true"><i class="c-blob" id="cursor-blob"></i><span class="c-label mono" id="cursor-label"></span></div>
+    <canvas id="fx" aria-hidden="true"></canvas>
+
+    <div class="degraded mono" id="degraded" hidden>Canvas2D mode — WebGPU unavailable. Physics is still Rust.</div>
+
+    <main>
+      <!-- ── 01 poster ──────────────────────────────────────────────────── -->
+      <section id="poster" class="poster arena" aria-label="SOFT festival poster">
+        <canvas class="stage-canvas" id="poster-canvas" aria-label="The letters S O F T as squishable soft bodies"></canvas>
+        <div class="poster-ui">
+          <header class="topbar mono">
+            <a class="back" href="../">← Experiments</a>
+            <span class="tb-mid">A festival of squishy things</span>
+            <span class="tb-right">Nº 05 · <span id="renderer-tag">—</span></span>
+          </header>
+
+          <div class="info">
+            <div class="block b-dates" data-obstacle>
+              <h3 class="mono"><b>01</b> Dates</h3>
+              <p class="big">13–15 March 2027</p>
+              <p class="small">Thu–Sat · doors 10:00<br />last squish 23:00</p>
+            </div>
+            <div class="block b-venue" data-obstacle>
+              <h3 class="mono"><b>02</b> Venue</h3>
+              <p class="big">The Bouncy Hall</p>
+              <p class="small">Pier 9, Rotterdam (fictional)<br />socks mandatory, shoes optional</p>
+            </div>
+            <div class="block b-lineup" data-obstacle>
+              <h3 class="mono"><b>03</b> Line-up</h3>
+              <p class="lineup">
+                <b>Jelly Ensemble</b> · DJ Marshmallow · The Pneumatic Choir · <b>Professor Pudding</b> (keynote: “Is a bouncy
+                castle architecture?”) · Mochi Mochi · Haribo Brutalism panel · Wobble &amp; Daughters · the Inflatable Type
+                Foundry · <b>a very large beanbag</b>
+              </p>
+            </div>
+            <div class="block b-nums" data-obstacle>
+              <h3 class="mono"><b>04</b> In numbers</h3>
+              <ul class="nums">
+                <li><b>4</b> giant letters</li>
+                <li><b id="n-points">—</b> particles</li>
+                <li><b id="n-kpa">101</b> kPa inside</li>
+                <li><b>0</b> sharp corners</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="hint mono" id="hero-hint"><span>Drag</span><span>Throw</span><span>Stack</span><span>Double-click to pop</span></p>
+          <p class="edge mono" aria-hidden="true">SOFT ’27 — tickets are pillows — no pins beyond this point</p>
+        </div>
+      </section>
+
+      <!-- ── 02 the stack ───────────────────────────────────────────────── -->
+      <section id="stack" class="stack arena" aria-label="The Stack — a stacking game">
+        <canvas class="stage-canvas" id="stack-canvas" aria-label="Stacking arena"></canvas>
+        <div class="ruler mono" id="ruler" aria-hidden="true"></div>
+        <div class="hline cur mono" id="line-cur" aria-hidden="true"><span>0.00 m</span></div>
+        <div class="hline best mono" id="line-best" aria-hidden="true"><span>Best 0.00 m</span></div>
+        <div class="stack-ui">
+          <header class="sec-head mono"><span><b>02</b> The Stack</span><span>Game</span><span>1 m = one letter</span></header>
+          <div class="stack-card" data-obstacle>
+            <h2>The<br />Stack</h2>
+            <p>How tall can soft go? Drop letters, pile them onto the plinth, squish them into place. Height counts once the pile sits still for a second.</p>
+            <button class="btn-drop" id="drop-btn" type="button">Drop <b id="next-letter">A</b></button>
+            <dl class="score mono">
+              <div><dt>Height</dt><dd id="h-now">0.00 m</dd></div>
+              <div><dt>Best</dt><dd id="h-best">0.00 m</dd></div>
+              <div><dt>Letters</dt><dd id="h-count">0</dd></div>
+            </dl>
+          </div>
+        </div>
+        <div class="plinth mono" id="plinth"><span>Plinth Nº 1</span><span>please do not sit</span></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </section>
+
+      <!-- ── 03 colophon ────────────────────────────────────────────────── -->
+      <section id="colophon" class="colophon">
+        <header class="sec-head mono"><span><b>03</b> Colophon</span><span>How soft is made</span><span>Experiment 05 · 2026</span></header>
+        <h2 class="colo-title">Every letter is a bag of particles <em>that remembers its shape.</em></h2>
+        <div class="colo-grid">
+          <article>
+            <h3 class="mono"><b>01</b> Marching squares</h3>
+            <p>
+              Each glyph is drawn once with Canvas2D in Bricolage Grotesque 800. Rust walks the alpha bitmap with marching squares,
+              links crossings into closed loops, simplifies them with Douglas–Peucker and resamples to even spacing — outer rings and
+              holes (the O keeps its O). <span class="live" id="c-extract"></span>
+            </p>
+          </article>
+          <article>
+            <h3 class="mono"><b>02</b> Shape matching</h3>
+            <p>
+              Müller et al. 2005. Every substep finds the best-fit rotation of the rest shape (a 2D polar decomposition is one atan2),
+              blends in a volume-normalised linear transform, and pulls particles toward it. Stiffness is the “jelly ↔ rubber” slider.
+            </p>
+          </article>
+          <article>
+            <h3 class="mono"><b>03</b> Gas pressure</h3>
+            <p>
+              An area constraint on the signed area of all rings keeps letters puffy when squashed and lets you inflate them. Push the
+              pressure to the top and they protest. Double-click and they deflate like party balloons, then re-inflate.
+            </p>
+          </article>
+          <article>
+            <h3 class="mono"><b>04</b> Collisions</h3>
+            <p>
+              Particles are tested against other glyphs with an even-odd inside test and nearest edge, pushed out with mass-split
+              corrections and Coulomb friction. The poster’s info blocks are real rounded obstacles, sent to Rust as rects.
+            </p>
+          </article>
+          <article>
+            <h3 class="mono"><b>05</b> Rust → WebAssembly</h3>
+            <p>
+              Six substeps per frame, positions read zero-copy from linear memory. <span class="live" id="c-wasm"></span>
+            </p>
+          </article>
+          <article>
+            <h3 class="mono"><b>06</b> Renderer</h3>
+            <p>
+              <span class="live" id="c-renderer"></span> Rest-pose glyphs are ear-clipped once (holes bridged); the deforming mesh reads Rust
+              positions each frame. WGSL draws a soft shadow, a thick ink outline as a miter strip, the fill with halftone and a
+              squash-dependent gloss, then a lit rim.
+            </p>
+          </article>
+        </div>
+        <footer class="colo-foot mono">
+          <a href="../" class="back-big">← Back to Experiments</a>
+          <span>Type: Bricolage Grotesque · DM Mono</span>
+          <span>Sound: Web Audio, synthesised</span>
+          <a href="https://github.com/timetodoit/Experiments" target="_blank" rel="noopener">Source ↗</a>
+        </footer>
+      </section>
+    </main>
+
+    <!-- ── controls ───────────────────────────────────────────────────── -->
+    <div class="dock mono" id="dock" role="group" aria-label="Physics controls">
+      <label class="ctl">
+        <span>Inflate <i id="v-inflate">101 kPa</i></span>
+        <input type="range" id="r-inflate" min="0.6" max="1.6" step="0.01" value="1" aria-label="Inflate pressure" />
+      </label>
+      <label class="ctl">
+        <span>Jelly <i id="v-stiff">gummy</i> Rubber</span>
+        <input type="range" id="r-stiff" min="0" max="1" step="0.01" value="0.5" aria-label="Stiffness, jelly to rubber" />
+      </label>
+      <div class="dock-btns">
+        <button type="button" id="b-gravity" aria-pressed="false">Gravity ↓</button>
+        <button type="button" id="b-reset">Reset</button>
+        <button type="button" id="b-sound" aria-pressed="true">Sound on</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

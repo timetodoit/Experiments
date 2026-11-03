@@ -31,6 +31,16 @@
       li a:hover { padding-left: 14px; color: var(--yellow); }
       .t { font-size: clamp(28px, 4vw, 56px); letter-spacing: -0.04em; line-height: 1; }
       .d { color: var(--dim); text-align: right; }
+      li a:hover { color: var(--fg); }
+      .peek {
+        position: fixed; left: 0; top: 0; width: 240px; height: 150px; border-radius: 14px; pointer-events: none; z-index: 5;
+        background: var(--pbg, #111); color: var(--pfg, #fff); padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
+        opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(-6deg); transition: opacity 0.3s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+      }
+      .peek b { font-weight: 500; font-size: 30px; letter-spacing: -0.04em; line-height: 0.95; }
+      .peek.on { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 0deg)); }
+      @media (hover: none) { .peek { display: none; } }
       @media (max-width: 640px) { li a { grid-template-columns: 3ch 1fr; } .d { grid-column: 2; text-align: left; } }
     </style>
   </head>
@@ -38,13 +48,68 @@
     <header class="mono"><span><b>Experiments</b> — github.com/timetodoit</span><span>Index / 2026</span></header>
     <h1>Things built<br />to see <em>what happens.</em></h1>
     <ol>
-      <li>
+      <li style="--bg:#070707;--fg:#f4ff00">
         <a href="./01-field-station/">
           <span class="mono">01</span>
           <span class="t">Field Station 04</span>
           <span class="d mono">WebGPU · WGSL compute · Rust → WASM cloth + rigid bodies</span>
         </a>
       </li>
+      <li style="--bg:#f3b79b;--fg:#3b2a6b">
+        <a href="./02-meridian/">
+          <span class="mono">02</span>
+          <span class="t">Meridian</span>
+          <span class="d mono">WebGPU fluid simulation · liquid-glass refraction · time-of-day palettes</span>
+        </a>
+      </li>
+      <li style="--bg:#0b0c0e;--fg:#ff5a1f">
+        <a href="./03-hollow-monument/">
+          <span class="mono">03</span>
+          <span class="t">Hollow Monument</span>
+          <span class="d mono">Rust point-cloud generation · WGSL compute morphs · scroll flythrough</span>
+        </a>
+      </li>
+      <li style="--bg:#1b2bff;--fg:#f2ecdc">
+        <a href="./04-signal-fm/">
+          <span class="mono">04</span>
+          <span class="t">Signal FM</span>
+          <span class="d mono">WGSL raymarching → ASCII · Web Audio generative stations</span>
+        </a>
+      </li>
+      <li style="--bg:#f4efe6;--fg:#ff4a2e">
+        <a href="./05-soft/">
+          <span class="mono">05</span>
+          <span class="t">SOFT</span>
+          <span class="d mono">Rust soft bodies from real letterforms · shape matching · stacking game</span>
+        </a>
+      </li>
     </ol>
+    <div class="peek" id="peek" aria-hidden="true"><span class="mono" id="peek-n"></span><b id="peek-t"></b></div>
+    <script>
+      const peek = document.getElementById('peek')
+      let x = 0, y = 0, px = 0, py = 0, vx = 0
+      addEventListener('pointermove', (e) => { x = e.clientX; y = e.clientY })
+      document.querySelectorAll('li').forEach((li) => {
+        li.addEventListener('pointerenter', () => {
+          const cs = getComputedStyle(li)
+          peek.style.setProperty('--pbg', cs.getPropertyValue('--bg'))
+          peek.style.setProperty('--pfg', cs.getPropertyValue('--fg'))
+          document.getElementById('peek-n').textContent = 'Experiment ' + li.querySelector('.mono').textContent
+          document.getElementById('peek-t').textContent = li.querySelector('.t').textContent
+          peek.classList.add('on')
+        })
+        li.addEventListener('pointerleave', () => peek.classList.remove('on'))
+      })
+      ;(function loop() {
+        const nx = px + (x - px) * 0.14
+        vx = nx - px
+        px = nx
+        py += (y - py) * 0.14
+        peek.style.left = px + 140 + 'px'
+        peek.style.top = py + 'px'
+        peek.style.setProperty('--rot', Math.max(-12, Math.min(12, vx * 0.6)) + 'deg')
+        requestAnimationFrame(loop)
+      })()
+    </script>
   </body>
 </html>

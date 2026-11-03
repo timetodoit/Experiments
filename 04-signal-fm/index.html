@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Signal FM</title>
+    <meta name="description" content="Experiment 04 — four pirate stations broadcasting from nowhere. Raymarched in WGSL, printed as ASCII on the GPU, scored live with Web Audio." />
+    <meta name="theme-color" content="#1b2bff" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231b2bff'/%3E%3Cpath d='M6 20c3-8 5-8 8 0s5 8 8 0 3-6 4-4' stroke='%23f2ecdc' stroke-width='2.4' fill='none'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="booting">
+    <canvas id="screen" aria-label="ASCII render of the current station" role="img"></canvas>
+
+    <!-- ── boot: test card ──────────────────────────────────────────────── -->
+    <div id="boot">
+      <div class="tc">
+        <div class="tc-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="tc-pluge" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="tc-grid" aria-hidden="true"></div>
+        <div class="tc-disc">
+          <div class="tc-sweep" aria-hidden="true"></div>
+          <svg class="tc-wave" viewBox="0 0 200 40" aria-hidden="true"><path d="M0 20 Q 12.5 2 25 20 T 50 20 T 75 20 T 100 20 T 125 20 T 150 20 T 175 20 T 200 20" /></svg>
+          <div class="tc-mark display">Signal<br />FM</div>
+          <div class="tc-sub mono">Test card · 1 kHz line-up</div>
+          <button class="tune-in" id="tune-in" type="button" disabled>
+            <span class="display">Tune in</span>
+            <span class="mono" id="tune-state">Warming valves…</span>
+          </button>
+        </div>
+        <dl class="tc-read mono" id="tc-read" aria-live="polite"></dl>
+        <div class="tc-corner tl mono">SFM/04</div>
+        <div class="tc-corner tr mono" id="tc-clock">00:00:00</div>
+        <div class="tc-corner bl mono">Four stations broadcasting from nowhere</div>
+        <div class="tc-corner br mono">Audio starts on tune-in</div>
+      </div>
+    </div>
+
+    <div id="cursor" aria-hidden="true"><i class="c-ring"></i><i class="c-dot"></i><span class="c-read mono" id="cursor-read"></span></div>
+
+    <!-- ── top bar ──────────────────────────────────────────────────────── -->
+    <header class="top mono">
+      <div class="top-l">
+        <a class="back" href="../">← Experiments</a>
+        <span class="brand"><b class="display">Signal FM</b></span>
+      </div>
+      <div class="top-c">
+        <span class="onair" id="onair"><i></i>On air</span>
+        <span id="clock">00:00:00</span>
+      </div>
+      <div class="top-r">
+        <span class="listeners">Listeners <b id="listeners">—</b></span>
+        <div class="res" role="group" aria-label="ASCII resolution">
+          <span class="res-l">Resolution</span>
+          <button type="button" id="res-dn" aria-label="Larger cells">−</button>
+          <b id="res-val">12 px</b>
+          <button type="button" id="res-up" aria-label="Smaller cells">+</button>
+        </div>
+        <button type="button" class="about-btn" id="about-btn" aria-expanded="false" aria-controls="about">About</button>
+      </div>
+    </header>
+
+    <div class="degraded mono" id="degraded" hidden><b>WebGPU unavailable</b> — drawing with Canvas2D. The radio still works.</div>
+
+    <!-- ── station HUD ──────────────────────────────────────────────────── -->
+    <main class="hud">
+      <section class="station" aria-live="polite">
+        <div class="station-meta mono"><span id="st-num">01 / 04</span><span id="st-tag">Ambient for empty rooms</span></div>
+        <h1 class="station-name display" id="st-name">Halcyon</h1>
+      </section>
+
+      <aside class="now mono" id="now">
+        <div class="now-h"><span><i class="rec"></i>Now playing</span><span id="np-time">00:00</span></div>
+        <dl>
+          <div><dt>Track</dt><dd id="np-track">—</dd></div>
+          <div><dt>Artist</dt><dd id="np-artist">—</dd></div>
+          <div><dt>Broadcast from</dt><dd id="np-from">—</dd></div>
+          <div><dt>Position</dt><dd id="np-coords">—</dd></div>
+        </dl>
+        <pre class="spectrum" id="spectrum" aria-hidden="true"></pre>
+        <div class="bands" aria-hidden="true">
+          <span>Bass <b id="b-bass"></b></span><span>Mid <b id="b-mid"></b></span><span>High <b id="b-high"></b></span>
+        </div>
+      </aside>
+
+      <div class="stretch mono" id="stretch" aria-hidden="true"><b>◖◗</b> Time-stretch <span id="stretch-val">1.00×</span></div>
+      <ul class="hints mono" aria-label="Controls">
+        <li><b>Drag · Scroll</b> dial</li>
+        <li><b>Click</b> pulse</li>
+        <li><b>Hold</b> time-stretch</li>
+        <li><b>1–4</b> presets</li>
+      </ul>
+    </main>
+
+    <!-- ── tuner ────────────────────────────────────────────────────────── -->
+    <footer class="tuner" id="tuner-root">
+      <div class="tuner-top mono">
+        <div class="freq"><b class="display" id="freq">88.0</b><span>MHz<br />FM stereo</span></div>
+        <div class="presets" role="group" aria-label="Station presets" id="presets"></div>
+        <div class="meter">
+          <span>Signal</span>
+          <div class="bars" id="meter" aria-hidden="true"></div>
+          <span class="lock" id="lock">Seek</span>
+        </div>
+        <label class="vol"><span>Vol</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume" /></label>
+      </div>
+      <div class="dial" id="dial" role="slider" tabindex="0" aria-label="FM tuning dial" aria-valuemin="88" aria-valuemax="108" aria-valuenow="88.0">
+        <div class="needle" aria-hidden="true"><i></i></div>
+      </div>
+    </footer>
+
+    <!-- ── about ────────────────────────────────────────────────────────── -->
+    <div class="about" id="about" hidden role="dialog" aria-modal="true" aria-labelledby="about-title">
+      <div class="about-inner">
+        <header class="about-head mono">
+          <span>Signal FM — Colophon</span>
+          <button type="button" id="about-close">Close <kbd>Esc</kbd></button>
+        </header>
+        <h2 class="about-title display" id="about-title">Four stations<br />broadcasting<br />from nowhere.</h2>
+        <p class="about-copy mono">
+          Signal FM is a pirate radio station that only exists while this tab is open. Nothing is recorded: every note
+          is synthesised as you listen, every frame is a raymarched room printed in type. Turn the dial. Between the
+          stations is the static, and the static is where it all comes from.
+        </p>
+        <div class="colophon mono">
+          <div><h3>Rendering</h3><p>WebGPU · WGSL<br />4 SDF raymarchers (pipeline overrides)<br />rgba16float, 2 × 2 texels / cell</p></div>
+          <div><h3>ASCII pass</h3><p>Sobel edges on depth → <span class="g">/ \ | -</span><br />Bayer-dithered glyph ramp<br />Canvas2D atlas → copyExternalImageToTexture</p></div>
+          <div><h3>Audio</h3><p>Web Audio synthesis, no samples<br />oscillators · noise · biquads · delays<br />lookahead scheduler · comp → limiter</p></div>
+          <div><h3>Type</h3><p>Anton<br />JetBrains Mono</p></div>
+          <div><h3>Source</h3><p><a href="https://github.com/timetodoit/Experiments" target="_blank" rel="noopener">github.com/timetodoit/Experiments</a><br />Experiment 04 · 2026<br /><a href="../">← All experiments</a></p></div>
+        </div>
+        <dl class="about-sys mono" id="about-sys"></dl>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
