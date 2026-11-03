@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Experiments</title>
+    <meta name="description" content="An index of interactive experiments — WebGPU, WGSL, Rust → WebAssembly, physics." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23070707'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23f4ff00' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@1&family=Inter+Tight:wght@500&display=swap" rel="stylesheet" />
+    <style>
+      :root { --ink: #070707; --text: #f2f0e8; --dim: rgba(242, 240, 232, 0.5); --yellow: #f4ff00; --line: rgba(242, 240, 232, 0.14); }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: var(--ink); color: var(--text); font-family: 'Inter Tight', system-ui, sans-serif; min-height: 100vh;
+        padding: clamp(16px, 3vw, 40px); display: flex; flex-direction: column; -webkit-font-smoothing: antialiased;
+        background-image: linear-gradient(to right, rgba(244, 255, 0, 0.07) 1px, transparent 1px);
+        background-size: calc(100% / 6) 100%;
+      }
+      .mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
+      header { display: flex; justify-content: space-between; color: var(--dim); }
+      header b { color: var(--yellow); font-weight: 500; }
+      h1 { margin-top: 18vh; font-weight: 500; font-size: clamp(56px, 12vw, 200px); line-height: 0.88; letter-spacing: -0.055em; }
+      h1 em { font-family: 'Instrument Serif', serif; font-weight: 400; color: var(--yellow); letter-spacing: -0.03em; }
+      ol { list-style: none; margin-top: auto; padding-top: 12vh; border-bottom: 1px solid var(--line); }
+      li a {
+        display: grid; grid-template-columns: 4ch 1fr auto; gap: 24px; align-items: baseline; padding: 22px 0;
+        border-top: 1px solid var(--line); color: inherit; text-decoration: none; transition: padding 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s;
+      }
+      li a:hover { padding-left: 14px; color: var(--yellow); }
+      .t { font-size: clamp(28px, 4vw, 56px); letter-spacing: -0.04em; line-height: 1; }
+      .d { color: var(--dim); text-align: right; }
+      @media (max-width: 640px) { li a { grid-template-columns: 3ch 1fr; } .d { grid-column: 2; text-align: left; } }
+    </style>
+  </head>
+  <body>
+    <header class="mono"><span><b>Experiments</b> — github.com/timetodoit</span><span>Index / 2026</span></header>
+    <h1>Things built<br />to see <em>what happens.</em></h1>
+    <ol>
+      <li>
+        <a href="./01-field-station/">
+          <span class="mono">01</span>
+          <span class="t">Field Station 04</span>
+          <span class="d mono">WebGPU · WGSL compute · Rust → WASM cloth + rigid bodies</span>
+        </a>
+      </li>
+    </ol>
+  </body>
+</html>

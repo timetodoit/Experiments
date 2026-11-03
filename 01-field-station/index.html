@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Field Station 04</title>
+    <meta name="description" content="Experiment 01 — a field survey of a wetland that does not exist. WebGPU, WGSL compute and a Rust → WebAssembly physics core." />
+    <meta name="theme-color" content="#070707" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23070707'/%3E%3Cpath d='M16 7v18M7 16h18' stroke='%23f4ff00' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Doto:wght@600;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- ── boot ─────────────────────────────────────────────────────────── -->
+    <div id="boot" aria-hidden="true">
+      <div class="boot-cells" id="boot-cells"></div>
+      <div class="boot-center">
+        <div class="boot-mark dot">FIELD STATION 04</div>
+        <div class="boot-pct dot" id="boot-pct">000</div>
+      </div>
+      <pre class="boot-log mono" id="boot-log"></pre>
+    </div>
+
+    <div id="cursor" aria-hidden="true">
+      <i class="c-h"></i><i class="c-v"></i>
+      <span class="c-read mono" id="cursor-read"></span>
+    </div>
+
+    <!-- ── nav ──────────────────────────────────────────────────────────── -->
+    <header class="nav mono">
+      <a class="nav-mark dot" href="#survey">FS/04</a>
+      <nav class="nav-links">
+        <a href="#survey"><b>01</b> Survey</a>
+        <a href="#specimen"><b>02</b> Specimen</a>
+        <a href="#taxonomy"><b>03</b> Taxonomy</a>
+        <a href="#inspect"><b>04</b> Inspect</a>
+      </nav>
+      <div class="nav-right">
+        <span id="clock">00:00:00 UTC</span>
+        <button class="xray-btn" id="xray-btn" type="button"><kbd>X</kbd> X-ray</button>
+      </div>
+    </header>
+
+    <div class="degraded mono" id="degraded" hidden>
+      <b>WebGPU unavailable</b> — running degraded survey (Canvas2D). Rust core still active.
+    </div>
+
+    <main id="stage">
+      <!-- ── 01 survey ────────────────────────────────────────────────── -->
+      <section id="survey" class="survey">
+        <div class="survey-sticky" id="survey-sticky">
+          <canvas id="survey-canvas"></canvas>
+          <div class="survey-grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="markers" id="markers"></div>
+          <div class="lens-label mono" id="lens-label"><span id="lens-name">SCANNING</span><span id="lens-sub"></span></div>
+
+          <div class="survey-ui">
+            <div class="meta mono">
+              <span>Survey unit 04</span>
+              <span>Shoreline wetland, sector 7</span>
+              <span id="coords">37.4243° N 122.0844° W</span>
+            </div>
+
+            <h1 class="hero-title" id="hero-title">
+              <span class="ln">A field survey</span>
+              <span class="ln">of a wetland</span>
+              <span class="ln"><em>that does not exist.</em></span>
+            </h1>
+
+            <div class="hero-side">
+              <p class="hero-copy">
+                Every contour is solved per pixel in WGSL. <span id="particle-count">131,072</span> grains of pollen roll
+                downhill in a compute shader. Hold anywhere to sink the ground beneath them.
+              </p>
+              <ul class="chips mono">
+                <li><b>Move</b> scan</li>
+                <li><b>Hold</b> sink terrain</li>
+                <li><b>Click</b> seismic pulse</li>
+                <li><b>Scroll</b> descend</li>
+              </ul>
+            </div>
+
+            <dl class="readout mono" id="readout">
+              <div><dt>Elev</dt><dd id="r-elev">—</dd></div>
+              <div><dt>Slope</dt><dd id="r-slope">—</dd></div>
+              <div><dt>Zoom</dt><dd id="r-zoom">1.00×</dd></div>
+              <div><dt>Pollen</dt><dd id="r-count">—</dd></div>
+              <div><dt>Frame</dt><dd id="r-fps">—</dd></div>
+            </dl>
+
+            <pre class="log mono" id="survey-log"></pre>
+            <div class="scroll-cue mono"><span>Descend</span><i></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 02 specimen ──────────────────────────────────────────────── -->
+      <section id="specimen" class="specimen paper">
+        <header class="sec-head mono">
+          <span>002 — Specimen</span>
+          <span>Herbarium sheet FS04-0001</span>
+          <span>Solver: physics.rs → wasm32</span>
+        </header>
+
+        <div class="specimen-grid">
+          <article class="card" id="specimen-card">
+            <div class="card-top mono"><span>✱ Edible plants</span><span>Annual · Seasonal</span></div>
+            <h2 class="card-title"><em>Linum usitatissimum</em></h2>
+            <p class="card-copy mono">
+              One of the oldest cultivated plants on earth — flax has been grown for linen and oil for nine thousand years.
+              Its pale blue flowers last a single day. This sheet is a verlet cloth solved in Rust: pull it, tear it, let the
+              wind find it.
+            </p>
+            <ul class="pills mono">
+              <li class="p-peach">cultivated</li>
+              <li class="p-mint">edible</li>
+              <li class="p-sky">medicinal</li>
+              <li class="p-lilac">summer bloom</li>
+            </ul>
+            <dl class="stats mono" id="sheet-stats">
+              <div><dt>Particles</dt><dd id="s-particles">—</dd></div>
+              <div><dt>Constraints</dt><dd id="s-constraints">—</dd></div>
+              <div><dt>Iterations</dt><dd id="s-iter">—</dd></div>
+              <div><dt>Torn</dt><dd id="s-torn">0</dd></div>
+              <div><dt>Step</dt><dd id="s-ms">—</dd></div>
+            </dl>
+            <div class="controls mono">
+              <button type="button" id="b-scalpel"><span class="led"></span>Scalpel</button>
+              <button type="button" id="b-wind"><span class="led on"></span>Wind <i id="wind-val">0.35</i></button>
+              <button type="button" id="b-drop">Drop sheet</button>
+              <button type="button" id="b-reset">Re-hang</button>
+            </div>
+            <p class="hint mono">Drag to pull · <kbd>⇧</kbd> Shift-drag or Scalpel to cut · double-click to re-hang</p>
+          </article>
+
+          <div class="sheet-wrap" id="sheet-wrap">
+            <div class="wire" id="wire"></div>
+            <canvas id="sheet-canvas"></canvas>
+            <div class="clips" id="clips"></div>
+            <div class="sheet-tag mono"><span>Fig. 02</span><span id="sheet-mode">Tension field nominal</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 03 taxonomy ──────────────────────────────────────────────── -->
+      <section id="taxonomy" class="taxonomy">
+        <header class="sec-head mono">
+          <span>003 — Taxonomy</span>
+          <span>Rigid bodies · SAT · verlet</span>
+          <span id="t-readout">0 bodies · 0 contacts</span>
+        </header>
+        <h2 class="tax-title" id="tax-title">
+          <span data-static>Taxonomy</span> <span data-static>is</span> <span data-static>just</span><br />
+          <span data-static>gravity</span> <em data-static>with</em> <em data-static>opinions.</em>
+        </h2>
+        <div class="tax-bottom">
+          <p class="tax-copy mono" data-static>
+            Thirty-six descriptors from the survey, each a rectangle of four particles and six sticks, colliding through the
+            separating-axis test in Rust. Drag them, throw them, stack them. Click empty ground to scatter.
+          </p>
+          <div class="controls mono tax-controls" data-static>
+            <button type="button" id="b-flip">Flip gravity</button>
+            <button type="button" id="b-scatter">Scatter</button>
+            <button type="button" id="b-respawn">Respawn</button>
+          </div>
+        </div>
+        <div class="arena" id="arena"></div>
+      </section>
+
+      <!-- ── 04 inspect ───────────────────────────────────────────────── -->
+      <section id="inspect" class="inspect">
+        <header class="sec-head mono">
+          <span>004 — Inspect</span>
+          <span>Every node annotated</span>
+          <span>Esc to exit</span>
+        </header>
+        <h2 class="inspect-title">Everything here<br />is <em>inspectable.</em></h2>
+        <button class="cta" id="xray-cta" type="button">
+          <span class="mono">Press</span><kbd>X</kbd><span>Open the station</span>
+        </button>
+        <footer class="colophon mono">
+          <div><h3>Rendering</h3><p>WebGPU · WGSL<br />survey.wgsl · sheet.wgsl<br />compute + instanced quads</p></div>
+          <div><h3>Physics</h3><p>Rust → WebAssembly<br /><span id="wasm-size">physics_bg.wasm</span><br />verlet cloth · SAT bodies</p></div>
+          <div><h3>Type</h3><p>Inter Tight · IBM Plex Mono<br />Instrument Serif · Doto</p></div>
+          <div><h3>Source</h3><p><a href="https://github.com/timetodoit/Experiments" target="_blank" rel="noopener">github.com/timetodoit/<br />Experiments</a><br />Experiment 01 · 2026</p></div>
+        </footer>
+      </section>
+    </main>
+
+    <div class="xray-hud mono" id="xray-hud">
+      <span><b>X-RAY</b> <i id="xray-count">0</i> nodes annotated</span>
+      <span>Move to orbit · scroll to travel · <kbd>Esc</kbd> exit</span>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
